@@ -1,0 +1,23 @@
+id,label,icon_name,sort_order
+Cat_012,Mens Fashion,Mens Fashion,1
+Cat_022,Womens Fashion,Womens Fashion,2
+Cat_006,FMCG,FMCG,3
+Cat_005,Electronics,Electronics,4
+Cat_003,"Beauty, Health, Grocery","Beauty, Health, Grocery",5
+Cat_001,Autmotive,Autmotive,6
+Cat_007,Footwear,Footwear,7
+Cat_004,Clothing,Clothing,8
+Cat_008,Home and Furniture,Home and Furniture,9
+Cat_002,Baby Care,Baby Care,10
+Cat_009,Kitchen,Kitchen,11
+Cat_010,Luggage,Luggage,12
+Cat_011,Medical,Medical,13
+Cat_013,"Mobile, Computer, Accessories","Mobile, Computer, Accessories",14
+Cat_014,"Movies, Music, Games","Movies, Music, Games",15
+Cat_015,Musical Instruments,Musical Instruments,16
+Cat_016,Sports,Sports,17
+Cat_017,Stationary,Stationary,18
+Cat_018,Tools and Hardware,Tools and Hardware,19
+Cat_019,Toys,Toys,20
+Cat_020,"TV, Appliances, Electronics","TV, Appliances, Electronics",21
+Cat_021,Watch,Watch,22

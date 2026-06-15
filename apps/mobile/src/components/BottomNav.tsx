@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Image, Platform } from 'react-native';
 
 const NAV_ITEMS = [
   { id: 'home', imageSource: require('../../assets/img/Home.png'), label: 'Home' },
@@ -58,7 +58,8 @@ export const BottomNav: React.FC<BottomNavProps> = ({ onBrowseAll, onProfile, on
 const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
-    height: 68,
+    height: Platform.OS === 'android' ? 84 : 68,
+    paddingBottom: Platform.OS === 'android' ? 16 : 0,
     backgroundColor: '#FFFFFF',
     borderTopWidth: 1,
     borderTopColor: '#E2E8F0',
@@ -79,10 +80,10 @@ const styles = StyleSheet.create({
     width: 24,
     height: 24,
     marginBottom: 4,
-    opacity: 0.45,
+    tintColor: '#94A3B8',
   },
   navImageActive: {
-    opacity: 1,
+    tintColor: '#D97706',
   },
   label: {
     fontSize: 10,
@@ -91,7 +92,7 @@ const styles = StyleSheet.create({
     letterSpacing: 0.2,
   },
   labelActive: {
-    color: '#0F172A',
+    color: '#D97706',
     fontWeight: '700',
   },
   activeIndicator: {
@@ -99,7 +100,7 @@ const styles = StyleSheet.create({
     top: 0,
     width: 28,
     height: 3,
-    backgroundColor: '#0F172A',
+    backgroundColor: '#D97706',
     borderBottomLeftRadius: 4,
     borderBottomRightRadius: 4,
   },

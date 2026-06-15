@@ -12,7 +12,13 @@ import {
   Modal,
   Dimensions,
   SafeAreaView,
+  FlatList,
+  Alert,
 } from 'react-native';
+import Papa from 'papaparse';
+import * as FileSystem from 'expo-file-system';
+import * as Sharing from 'expo-sharing';
+import * as XLSX from 'xlsx';
 import { InventoryLot } from '../../types/InventoryLot';
 import { fetchLotImages, LotImage } from '../../services/InventoryService';
 import { resolveManifestUrl } from '../../utils/StorageUtils';
@@ -36,10 +42,11 @@ const getStatus = (s: string) => STATUS[s] ?? { bg: '#F1F5F9', text: '#64748B', 
 // ─── Manifest Modal ─────────────────────────────────────────────────────────
 const ManifestModal: React.FC<{
   filename: string | null;
+  lotId: string;
   visible: boolean;
   onClose: () => void;
-}> = ({ filename, visible, onClose }) => {
-  const [content, setContent] = useState('');
+}> = ({ filename, lotId, visible, onClose }) => {
+  const [parsedData, setParsedData] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -47,13 +54,11 @@ const ManifestModal: React.FC<{
     if (!visible || !filename) return;
     setLoading(true);
     setError(null);
-    setContent('');
+    setParsedData([]);
 
     const bare = filename
       .replace(/^https?:\/\/[^/]+\/storage\/v1\/object\/public\/[^/]+\//, '')
       .split('/').pop() ?? filename;
-
-    console.log('[Manifest] Loading:', bare);
 
     const publicUrl = resolveManifestUrl(bare);
     if (!publicUrl) {
@@ -66,14 +71,68 @@ const ManifestModal: React.FC<{
       try {
         const res = await fetch(publicUrl);
         if (!res.ok) throw new Error(`File not found (HTTP ${res.status}). Check "${bare}" in Supabase Storage.`);
-        setContent(await res.text());
+        const text = await res.text();
+        
+        Papa.parse(text, {
+          header: true,
+          skipEmptyLines: true,
+          complete: (results) => {
+            const filtered = results.data.filter((row: any) => {
+              const rowLot = row['lot_id'] || row['Lot ID'] || row['lotId'];
+              if (!rowLot) return true;
+              return String(rowLot).trim() === String(lotId).trim();
+            });
+            setParsedData(filtered);
+            setLoading(false);
+          },
+          error: (err: any) => {
+            setError(err.message);
+            setLoading(false);
+          }
+        });
       } catch (e: any) {
         setError(e.message);
-      } finally {
         setLoading(false);
       }
     })();
-  }, [visible, filename]);
+  }, [visible, filename, lotId]);
+
+  const downloadCSV = async () => {
+    try {
+      const csvStr = Papa.unparse(parsedData);
+      const fileUri = FileSystem.documentDirectory + `Manifest_${lotId}.csv`;
+      await FileSystem.writeAsStringAsync(fileUri, csvStr, { encoding: FileSystem.EncodingType.UTF8 });
+      await Sharing.shareAsync(fileUri);
+    } catch (e) {
+      Alert.alert('Error', 'Failed to generate CSV file');
+    }
+  };
+
+  const downloadExcel = async () => {
+    try {
+      const ws = XLSX.utils.json_to_sheet(parsedData);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "Manifest");
+      const base64 = XLSX.write(wb, { type: 'base64', bookType: 'xlsx' });
+      const fileUri = FileSystem.documentDirectory + `Manifest_${lotId}.xlsx`;
+      await FileSystem.writeAsStringAsync(fileUri, base64, { encoding: FileSystem.EncodingType.Base64 });
+      await Sharing.shareAsync(fileUri);
+    } catch (e) {
+      Alert.alert('Error', 'Failed to generate Excel file');
+    }
+  };
+
+  const renderSkuItem = ({ item, index }: { item: any; index: number }) => (
+    <View style={ms.skuCard}>
+      <Text style={ms.skuIndex}>#{index + 1}</Text>
+      {Object.entries(item).map(([key, val]) => (
+        <View key={key} style={ms.skuRow}>
+          <Text style={ms.skuKey} numberOfLines={1}>{key}</Text>
+          <Text style={ms.skuVal}>{String(val)}</Text>
+        </View>
+      ))}
+    </View>
+  );
 
   return (
     <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
@@ -83,7 +142,7 @@ const ManifestModal: React.FC<{
           <View style={ms.mHeader}>
             <View>
               <Text style={ms.mTitle}>Product Manifest</Text>
-              <Text style={ms.mSub}>Loaded securely in-app</Text>
+              <Text style={ms.mSub}>{parsedData.length > 0 ? `${parsedData.length} SKUs Found` : 'Loaded securely in-app'}</Text>
             </View>
             <TouchableOpacity onPress={onClose} style={ms.closeBtn} activeOpacity={0.7}>
               <Text style={ms.closeTxt}>✕</Text>
@@ -94,9 +153,26 @@ const ManifestModal: React.FC<{
           ) : error ? (
             <View style={ms.center}><Text style={{ fontSize: 28 }}>⚠️</Text><Text style={ms.errTxt}>{error}</Text></View>
           ) : (
-            <ScrollView style={ms.scroll} contentContainerStyle={ms.scrollContent} showsVerticalScrollIndicator>
-              <Text style={ms.bodyTxt}>{content}</Text>
-            </ScrollView>
+            <FlatList
+              data={parsedData}
+              keyExtractor={(_, index) => index.toString()}
+              renderItem={renderSkuItem}
+              contentContainerStyle={ms.listContent}
+              showsVerticalScrollIndicator={true}
+              initialNumToRender={15}
+              windowSize={5}
+              maxToRenderPerBatch={10}
+            />
+          )}
+          {!loading && !error && parsedData.length > 0 && (
+            <View style={ms.downloadRow}>
+              <TouchableOpacity style={ms.dlBtn} onPress={downloadCSV} activeOpacity={0.8}>
+                <Text style={ms.dlTxt}>📥 Save CSV</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={[ms.dlBtn, ms.dlExcel]} onPress={downloadExcel} activeOpacity={0.8}>
+                <Text style={[ms.dlTxt, {color: '#FFF'}]}>📊 Save Excel</Text>
+              </TouchableOpacity>
+            </View>
           )}
         </View>
       </View>
@@ -106,7 +182,7 @@ const ManifestModal: React.FC<{
 
 const ms = StyleSheet.create({
   overlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
-  sheet: { backgroundColor: '#FFF', borderTopLeftRadius: 24, borderTopRightRadius: 24, maxHeight: '82%', paddingBottom: Platform.OS === 'ios' ? 34 : 20 },
+  sheet: { backgroundColor: '#FFF', borderTopLeftRadius: 24, borderTopRightRadius: 24, maxHeight: '82%' },
   handle: { width: 36, height: 4, borderRadius: 2, backgroundColor: '#E2E8F0', alignSelf: 'center', marginTop: 12, marginBottom: 4 },
   mHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, paddingVertical: 14, borderBottomWidth: 1, borderBottomColor: '#F1F5F9' },
   mTitle: { fontSize: 17, fontWeight: '800', color: '#0F172A' },
@@ -116,9 +192,16 @@ const ms = StyleSheet.create({
   center: { alignItems: 'center', justifyContent: 'center', padding: 40, gap: 10 },
   loadTxt: { fontSize: 14, color: '#64748B' },
   errTxt: { fontSize: 13, color: '#DC2626', textAlign: 'center' },
-  scroll: { flex: 1 },
-  scrollContent: { padding: 20 },
-  bodyTxt: { fontSize: 13, color: '#1E293B', lineHeight: 22, fontFamily: Platform.OS === 'ios' ? 'Courier New' : 'monospace' },
+  listContent: { padding: 16, paddingBottom: 20 },
+  downloadRow: { flexDirection: 'row', paddingHorizontal: 16, paddingBottom: Platform.OS === 'ios' ? 34 : 20, gap: 12, paddingTop: 12, borderTopWidth: 1, borderTopColor: '#F1F5F9' },
+  dlBtn: { flex: 1, height: 48, backgroundColor: '#F1F5F9', borderRadius: 10, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: '#E2E8F0' },
+  dlExcel: { backgroundColor: '#16A34A', borderColor: '#15803D' },
+  dlTxt: { fontSize: 14, fontWeight: '700', color: '#0F172A' },
+  skuCard: { backgroundColor: '#F8FAFC', borderRadius: 8, borderWidth: 1, borderColor: '#E2E8F0', padding: 12, marginBottom: 12, position: 'relative' },
+  skuIndex: { position: 'absolute', top: 12, right: 12, fontSize: 11, fontWeight: '800', color: '#CBD5E1' },
+  skuRow: { flexDirection: 'row', marginBottom: 6, paddingRight: 24 },
+  skuKey: { width: 90, fontSize: 11, fontWeight: '700', color: '#64748B', textTransform: 'uppercase' },
+  skuVal: { flex: 1, fontSize: 12, fontWeight: '600', color: '#0F172A' }
 });
 
 // ─── InfoRow ───────────────────────────────────────────────────────────────
@@ -375,6 +458,7 @@ export const LotDetailScreen: React.FC<LotDetailScreenProps> = ({ lot, onBack })
 
       <ManifestModal
         filename={manifestFilename}
+        lotId={lot.id}
         visible={manifestOpen}
         onClose={() => setManifestOpen(false)}
       />

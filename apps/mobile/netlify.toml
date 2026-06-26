@@ -1,0 +1,9 @@
+[build]
+  command = ""
+  publish = "dist"
+
+# SPA fallback — all paths served by index.html so deep links don't 404
+[[redirects]]
+  from   = "/*"
+  to     = "/index.html"
+  status = 200

@@ -1,6 +1,6 @@
 import { IAppTheme } from '../interfaces/IAssets';
 
-export const WareyTheme: IAppTheme = {
+export const TrulotsTheme: IAppTheme = {
   backgrounds: {
     welcome: 'uri_placeholder_welcome_bg',
   },

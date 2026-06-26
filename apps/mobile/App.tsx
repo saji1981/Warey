@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useRef, useMemo } from 'react';
+import React, { useState, useCallback, useRef, useMemo, useEffect } from 'react';
 import {
   View,
   StyleSheet,
@@ -19,12 +19,19 @@ import { BottomNav } from './src/components/BottomNav';
 import { LotBrowserScreen } from './src/screens/consumer/LotBrowserScreen';
 import { LotDetailScreen } from './src/screens/consumer/LotDetailScreen';
 import { ProfileScreen } from './src/screens/profile/ProfileScreen';
+import { ProfileSetupScreen } from './src/screens/profile/ProfileSetupScreen';
 import { UpdatesScreen } from './src/screens/UpdatesScreen';
 import { InventoryLot } from './src/types/InventoryLot';
 import { quickSearch } from './src/services/InventoryService';
+import MasterDashboard from './src/screens/Master/MasterDashboard';
+import { supabase, isMockMode } from './src/services/SupabaseConfig';
+import { resolveImgUrl } from './src/utils/StorageUtils';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { TOP_NAV_H } from './src/components/BottomNav';
 
 // ─── Layout constants ─────────────────────────────────────────────────────────
-const BOTTOM_NAV_H   = 64;
+const BOTTOM_NAV_H   = 64;  // mobile bottom bar base height (safe-area pad added dynamically)
+const TOP_NAV_RESERVE = TOP_NAV_H; // web top bar
 const SEARCH_BAR_H   = 52;
 const SECTION_HDR_H  = 46;
 const DIVIDER_H      = 1;
@@ -34,6 +41,52 @@ const GRID_PADDING_V = 10;
 const App: React.FC = () => {
   const { width, height } = useWindowDimensions();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [userRole, setUserRole] = useState<string | null>(null);
+  const [isRoleLoading, setIsRoleLoading] = useState(false);
+  const [needsProfileSetup, setNeedsProfileSetup] = useState(false);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [currentUserPhone, setCurrentUserPhone] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (isLoggedIn) {
+      const fetchRole = async () => {
+        if (isMockMode) {
+          setUserRole(null);
+          setNeedsProfileSetup(false);
+          setIsRoleLoading(false);
+          return;
+        }
+        setIsRoleLoading(true);
+        try {
+          const { data: { session } } = await supabase.auth.getSession();
+          if (session?.user) {
+            const { data } = await supabase
+              .from('profiles')
+              .select('role, full_name, phone, phone_number')
+              .eq('id', session.user.id)
+              .maybeSingle();
+            setUserRole(data?.role ?? null);
+            setCurrentUserId(session.user.id);
+            setCurrentUserPhone(
+              data?.phone ?? data?.phone_number ?? session.user.phone ?? null
+            );
+            // Show setup screen when name hasn't been filled in yet
+            setNeedsProfileSetup(!data?.full_name?.trim());
+          }
+        } catch (err) {
+          console.error('Failed to fetch user role', err);
+        } finally {
+          setIsRoleLoading(false);
+        }
+      };
+      fetchRole();
+    } else {
+      setUserRole(null);
+      setNeedsProfileSetup(false);
+      setCurrentUserId(null);
+      setCurrentUserPhone(null);
+    }
+  }, [isLoggedIn]);
 
   // Overlay states
   const [browserVisible, setBrowserVisible] = useState(false);
@@ -41,6 +94,7 @@ const App: React.FC = () => {
   const [selectedLot, setSelectedLot] = useState<InventoryLot | null>(null);
   const [profileVisible, setProfileVisible] = useState(false);
   const [updatesVisible, setUpdatesVisible] = useState(false);
+  const [masterVisible, setMasterVisible] = useState(false);
 
   // Search states
   const [searchQuery, setSearchQuery] = useState('');
@@ -51,8 +105,11 @@ const App: React.FC = () => {
 
   // ── Layout: banner height (responsive) ────────────────────────────────────
   const BANNER_H = Math.min(height * 0.13, 110);
-  const SAFE_TOP = Platform.OS === 'ios' ? 44 : 24;
+  // Safe area: web has no OS chrome insets
+  const SAFE_TOP = Platform.OS === 'ios' ? 44 : Platform.OS === 'web' ? 0 : 24;
   const SAFE_BOT = Platform.OS === 'ios' ? 34 : 0;
+  // Reserve space for nav bar regardless of which platform/position
+  const NAV_RESERVE = Platform.OS === 'web' ? TOP_NAV_RESERVE : BOTTOM_NAV_H;
 
   // Available height for the category grid
   const gridAvailableH = height
@@ -62,7 +119,7 @@ const App: React.FC = () => {
     - SEARCH_BAR_H
     - SECTION_HDR_H
     - DIVIDER_H
-    - BOTTOM_NAV_H
+    - NAV_RESERVE
     - GRID_PADDING_V
     - 16;  // misc margins
 
@@ -128,15 +185,48 @@ const App: React.FC = () => {
     return <LoginScreen onLogin={() => setIsLoggedIn(true)} />;
   }
 
+  if (isRoleLoading) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <ActivityIndicator size="large" />
+      </View>
+    );
+  }
+
+  if (needsProfileSetup && currentUserId) {
+    return (
+      <ProfileSetupScreen
+        userId={currentUserId}
+        phone={currentUserPhone}
+        onComplete={() => setNeedsProfileSetup(false)}
+      />
+    );
+  }
+
+  // Master check removed from top-level to allow normal UI rendering
+
   return (
+    <SafeAreaProvider>
     <SafeAreaView style={styles.root}>
       {/* ────────────────── Home (always visible underneath) ─────────────────── */}
       <View style={styles.home}>
 
+        {/* Web: nav bar sits at the top ──────────────────────────────────────── */}
+        {Platform.OS === 'web' && (
+          <BottomNav
+            onBrowseAll={() => openBrowser()}
+            onProfile={() => setProfileVisible(true)}
+            onUpdates={() => setUpdatesVisible(true)}
+            onMaster={() => setMasterVisible(true)}
+            isMaster={userRole === 'master'}
+            activeTabOverride={!browserVisible && !profileVisible && !updatesVisible && !masterVisible && !selectedLot ? 'home' : undefined}
+          />
+        )}
+
         {/* Branding banner */}
         <View style={[styles.bannerWrap, { height: BANNER_H }]}>
           <Image
-            source={require('./assets/img/Background.png')}
+            source={{ uri: resolveImgUrl('Logo.png')! }}
             style={{ width: width < 500 ? '75%' : '42%', height: BANNER_H } as any}
             resizeMode="contain"
           />
@@ -170,12 +260,17 @@ const App: React.FC = () => {
           />
         </View>
 
-        <BottomNav
-          onBrowseAll={() => openBrowser()}
-          onProfile={() => setProfileVisible(true)}
-          onUpdates={() => setUpdatesVisible(true)}
-          activeTabOverride={!browserVisible && !profileVisible && !updatesVisible && !selectedLot ? 'home' : undefined}
-        />
+        {/* Mobile: nav bar sits at the bottom ─────────────────────────────── */}
+        {Platform.OS !== 'web' && (
+          <BottomNav
+            onBrowseAll={() => openBrowser()}
+            onProfile={() => setProfileVisible(true)}
+            onUpdates={() => setUpdatesVisible(true)}
+            onMaster={() => setMasterVisible(true)}
+            isMaster={userRole === 'master'}
+            activeTabOverride={!browserVisible && !profileVisible && !updatesVisible && !masterVisible && !selectedLot ? 'home' : undefined}
+          />
+        )}
       </View>
 
       {/* ────────────────── Search Modal ──────────────────────────────────────── */}
@@ -298,7 +393,16 @@ const App: React.FC = () => {
       <Modal visible={updatesVisible} animationType="slide" transparent={false} onRequestClose={() => setUpdatesVisible(false)}>
         <UpdatesScreen onBack={() => setUpdatesVisible(false)} />
       </Modal>
+
+      {/* ────────────────── Master Overlay ──────────────────────────────────────── */}
+      <Modal visible={masterVisible} animationType="slide" transparent={false} onRequestClose={() => setMasterVisible(false)}>
+        <MasterDashboard onBack={() => setMasterVisible(false)} onLogout={() => {
+          supabase.auth.signOut();
+          setIsLoggedIn(false);
+        }} />
+      </Modal>
     </SafeAreaView>
+    </SafeAreaProvider>
   );
 };
 

@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, Platform }
 import * as DocumentPicker from 'expo-document-picker';
 import * as FileSystem from 'expo-file-system';
 import Papa from 'papaparse';
+import { v4 as uuidv4 } from 'uuid';
 import { supabase } from '../../services/SupabaseConfig';
 
 export const InventoryUploadScreen = () => {
@@ -49,13 +50,6 @@ export const InventoryUploadScreen = () => {
         complete: async (results: any) => {
           addLog(`[PapaParse] Successfully mapped ${results.data.length} records. Initiating schema cast...`);
 
-          const generateUUID = () => {
-            return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-              var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
-              return v.toString(16);
-            });
-          };
-
           const mappedData = results.data
             .filter((row: any) => Object.keys(row).length > 0) // Extra safety to strip purely empty objects
             .map((row: any) => {
@@ -64,9 +58,9 @@ export const InventoryUploadScreen = () => {
               
               const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-              // 2. If no ID exists, OR if the existing ID is an invalid format (like "1"), securely mint a new UUID
+              // 2. If no ID exists, OR if the existing ID is not a valid UUID, mint a new cryptographically secure UUID
               if (!recordId || String(recordId).trim() === '' || !uuidRegex.test(String(recordId).trim())) {
-                recordId = generateUUID();
+                recordId = uuidv4();
               }
 
               const mappedRow: any = {

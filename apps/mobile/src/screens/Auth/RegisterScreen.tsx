@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { WareyTheme } from '../../theme/Assets';
+import { TrulotsTheme } from '../../theme/Assets';
 import { IAuthFlow } from '../../interfaces/IAuth';
 
 interface RegisterScreenProps {
@@ -18,9 +18,9 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = (props) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: WareyTheme.colors.surface,
+    backgroundColor: TrulotsTheme.colors.surface,
   },
   text: {
-    color: WareyTheme.colors.text,
+    color: TrulotsTheme.colors.text,
   },
 });

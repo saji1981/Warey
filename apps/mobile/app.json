@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "Warey",
-    "slug": "warey",
+    "name": "Trulots",
+    "slug": "trulots",
     "version": "1.0.0",
     "orientation": "portrait",
     "userInterfaceStyle": "light",
@@ -13,7 +13,7 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.warey.app",
+      "bundleIdentifier": "com.trulots",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
       }
@@ -23,10 +23,12 @@
         "foregroundImage": "./assets/icon.png",
         "backgroundColor": "#0F172A"
       },
-      "package": "com.warey.app"
+      "package": "com.trulots"
     },
     "web": {
-      "favicon": "./assets/icon.png"
+      "favicon": "./assets/icon.png",
+      "name": "Trulots",
+      "description": "B2B liquidation marketplace — browse surplus inventory in bulk"
     },
     "extra": {
       "eas": {

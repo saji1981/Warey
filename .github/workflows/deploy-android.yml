@@ -1,0 +1,82 @@
+name: Build & Submit Android to Play Store
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'apps/mobile/**'
+      - 'scripts/**'
+  workflow_dispatch: # allow manual trigger with inputs
+    inputs:
+      submit_to_store:
+        description: 'Submit to Google Play after build?'
+        required: true
+        default: 'true'
+        type: choice
+        options: ['true', 'false']
+
+permissions:
+  contents: write
+
+jobs:
+  build-android:
+    name: Bump version -> EAS Build -> Play Store Submit
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: apps/mobile/package-lock.json
+
+      - name: Install dependencies
+        working-directory: apps/mobile
+        run: npm ci
+
+      - name: Setup EAS CLI
+        uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+
+      # Bump version based on conventional commits
+      # feat!:/BREAKING CHANGE = major | feat: = minor | fix:/chore:/etc = patch
+      - name: Bump version
+        id: version
+        run: python3 scripts/bump-version.py
+
+      - name: EAS Build - Android production
+        working-directory: apps/mobile
+        run: eas build --platform android --profile production --non-interactive
+        env:
+          EXPO_PUBLIC_SUPABASE_URL: ${{ secrets.EXPO_PUBLIC_SUPABASE_URL }}
+          EXPO_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.EXPO_PUBLIC_SUPABASE_ANON_KEY }}
+
+      - name: Write Play Store service account key
+        run: echo '${{ secrets.GOOGLE_PLAY_KEY_JSON }}' > /tmp/google-play-key.json
+
+      - name: EAS Submit - Google Play internal track
+        if: ${{ github.event_name == 'push' || inputs.submit_to_store == 'true' }}
+        working-directory: apps/mobile
+        run: eas submit --platform android --profile production --non-interactive --latest --android-service-account-key-path /tmp/google-play-key.json
+        env:
+          EXPO_PUBLIC_SUPABASE_URL: ${{ secrets.EXPO_PUBLIC_SUPABASE_URL }}
+          EXPO_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.EXPO_PUBLIC_SUPABASE_ANON_KEY }}
+
+      # [skip ci] prevents this commit re-triggering the workflow
+      - name: Commit version bump and tag
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add apps/mobile/app.json apps/mobile/package.json
+          git commit -m "chore(release): v${{ steps.version.outputs.version }} [skip ci]"
+          git tag "v${{ steps.version.outputs.version }}"
+          git push origin HEAD:main --follow-tags

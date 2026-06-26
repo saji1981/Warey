@@ -1,24 +1,32 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image, Platform } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Platform } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
+/** Height of the web top nav bar — exported so App.tsx can reserve space. */
+export const TOP_NAV_H = 56;
 
 const NAV_ITEMS = [
-  { id: 'home', imageSource: require('../../assets/img/Home.png'), label: 'Home' },
-  { id: 'browse', imageSource: require('../../assets/img/Search.png'), label: 'All Inventory' },
-  { id: 'search', imageSource: require('../../assets/img/Blog.png'), label: 'Updates' },
-  { id: 'profile', imageSource: require('../../assets/img/Profile.png'), label: 'Profile' },
+  { id: 'home',    emoji: '🏠', label: 'Home' },
+  { id: 'browse',  emoji: '📦', label: 'All Inventory' },
+  { id: 'search',  emoji: '🔔', label: 'Updates' },
+  { id: 'profile', emoji: '👤', label: 'Profile' },
 ];
 
 interface BottomNavProps {
   onBrowseAll?: () => void;
   onProfile?: () => void;
   onUpdates?: () => void;
+  onMaster?: () => void;
   activeTabOverride?: string;
+  isMaster?: boolean;
 }
 
-export const BottomNav: React.FC<BottomNavProps> = ({ onBrowseAll, onProfile, onUpdates, activeTabOverride }) => {
+export const BottomNav: React.FC<BottomNavProps> = ({
+  onBrowseAll, onProfile, onUpdates, onMaster, activeTabOverride, isMaster,
+}) => {
   const [activeTab, setActiveTab] = useState('home');
+  const insets = useSafeAreaInsets();
 
-  // Reset active tab when overlays close
   useEffect(() => {
     if (activeTabOverride) setActiveTab(activeTabOverride);
   }, [activeTabOverride]);
@@ -28,26 +36,55 @@ export const BottomNav: React.FC<BottomNavProps> = ({ onBrowseAll, onProfile, on
     if (id === 'browse')  onBrowseAll?.();
     if (id === 'profile') onProfile?.();
     if (id === 'search')  onUpdates?.();
+    if (id === 'master')  onMaster?.();
   };
 
+  const navItems = [...NAV_ITEMS];
+  if (isMaster) navItems.push({ id: 'master', emoji: '⚙️', label: 'Master' });
+
+  // ── Web: horizontal top bar ─────────────────────────────────────────────────
+  if (Platform.OS === 'web') {
+    return (
+      <View style={web.container}>
+        {navItems.map(item => {
+          const active = activeTab === item.id;
+          return (
+            <TouchableOpacity
+              key={item.id}
+              style={web.tab}
+              onPress={() => handleTabPress(item.id)}
+              activeOpacity={0.7}
+            >
+              <Text style={[web.icon, active && web.iconActive]}>{item.emoji}</Text>
+              <Text style={[web.label, active && web.labelActive]}>{item.label}</Text>
+              {active && <View style={web.activeBar} />}
+            </TouchableOpacity>
+          );
+        })}
+      </View>
+    );
+  }
+
+  // ── Mobile: bottom tab bar + safe-area inset for gesture/button nav ─────────
+  // insets.bottom = 0 on devices with hardware buttons (the button bar is outside
+  // the app area), and the gesture bar height on swipe-based Android 10+ devices.
+  const bottomPad = insets.bottom > 0 ? insets.bottom : (Platform.OS === 'android' ? 12 : 4);
+  const barHeight = 58 + bottomPad;
+
   return (
-    <View style={styles.container}>
-      {NAV_ITEMS.map((item) => {
-        const isActive = activeTab === item.id;
+    <View style={[mobile.container, { paddingBottom: bottomPad, height: barHeight }]}>
+      {navItems.map(item => {
+        const active = activeTab === item.id;
         return (
           <TouchableOpacity
             key={item.id}
-            style={styles.tab}
+            style={mobile.tab}
             activeOpacity={0.7}
             onPress={() => handleTabPress(item.id)}
           >
-            <Image 
-              source={item.imageSource} 
-              style={[styles.navImage, isActive && styles.navImageActive]} 
-              resizeMode="contain" 
-            />
-            <Text style={[styles.label, isActive && styles.labelActive]}>{item.label}</Text>
-            {isActive && <View style={styles.activeIndicator} />}
+            <Text style={[mobile.icon, active && mobile.iconActive]}>{item.emoji}</Text>
+            <Text style={[mobile.label, active && mobile.labelActive]}>{item.label}</Text>
+            {active && <View style={mobile.activeBar} />}
           </TouchableOpacity>
         );
       })}
@@ -55,47 +92,74 @@ export const BottomNav: React.FC<BottomNavProps> = ({ onBrowseAll, onProfile, on
   );
 };
 
-const styles = StyleSheet.create({
+// ─── Web styles (horizontal top bar) ──────────────────────────────────────────
+const web = StyleSheet.create({
   container: {
     flexDirection: 'row',
-    height: Platform.OS === 'android' ? 84 : 68,
-    paddingBottom: Platform.OS === 'android' ? 16 : 0,
+    height: TOP_NAV_H,
     backgroundColor: '#FFFFFF',
-    borderTopWidth: 1,
-    borderTopColor: '#E2E8F0',
-    shadowColor: '#64748B',
-    shadowOffset: { width: 0, height: -4 },
-    shadowOpacity: 0.08,
-    shadowRadius: 12,
-    elevation: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E2E8F0',
+    // Web shadow
+    ...Platform.select({ default: {
+      shadowColor: '#64748B',
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.07,
+      shadowRadius: 8,
+    }}),
   },
   tab: {
     flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    position: 'relative',
+    paddingHorizontal: 8,
+  },
+  icon:        { fontSize: 16, marginRight: 4, color: '#94A3B8' },
+  iconActive:  { color: '#D97706' },
+  label:       { fontSize: 13, fontWeight: '500', color: '#64748B' },
+  labelActive: { color: '#D97706', fontWeight: '700' },
+  activeBar: {
+    position: 'absolute',
+    bottom: 0,
+    left: 16,
+    right: 16,
+    height: 3,
+    backgroundColor: '#D97706',
+    borderTopLeftRadius: 4,
+    borderTopRightRadius: 4,
+  },
+});
+
+// ─── Mobile styles (bottom tab bar) ───────────────────────────────────────────
+const mobile = StyleSheet.create({
+  container: {
+    flexDirection: 'row',
+    backgroundColor: '#FFFFFF',
+    borderTopWidth: 1,
+    borderTopColor: '#E2E8F0',
+    elevation: 10,
+    ...Platform.select({
+      ios:     { shadowColor: '#64748B', shadowOffset: { width: 0, height: -4 }, shadowOpacity: 0.08, shadowRadius: 12 },
+      android: {},
+      default: {},
+    }),
+  },
+  tab: {
+    flex: 1,
+    height: 58,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingBottom: 4,
+    paddingBottom: 2,
     position: 'relative',
   },
-  navImage: {
-    width: 24,
-    height: 24,
-    marginBottom: 4,
-    tintColor: '#94A3B8',
-  },
-  navImageActive: {
-    tintColor: '#D97706',
-  },
-  label: {
-    fontSize: 10,
-    color: '#94A3B8',
-    fontWeight: '500',
-    letterSpacing: 0.2,
-  },
-  labelActive: {
-    color: '#D97706',
-    fontWeight: '700',
-  },
-  activeIndicator: {
+  icon:        { fontSize: 22, marginBottom: 2, color: '#94A3B8' },
+  iconActive:  { color: '#D97706' },
+  label:       { fontSize: 10, color: '#94A3B8', fontWeight: '500' },
+  labelActive: { color: '#D97706', fontWeight: '700' },
+  activeBar: {
     position: 'absolute',
     top: 0,
     width: 28,
@@ -105,3 +169,5 @@ const styles = StyleSheet.create({
     borderBottomRightRadius: 4,
   },
 });
+
+

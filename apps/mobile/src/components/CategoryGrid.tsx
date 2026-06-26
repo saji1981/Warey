@@ -11,44 +11,52 @@ import {
   Platform,
 } from 'react-native';
 import { fetchCategories, Category } from '../services/CategoryService';
+import { resolveImgUrl } from '../utils/StorageUtils';
 
 // ─── Local image map ─────────────────────────────────────────────────────────
 const IMAGE_MAP: { key: string; image: any }[] = [
-  { key: 'automotive',  image: require('../../assets/img/Automotive.png') },
-  { key: 'baby',        image: require('../../assets/img/Baby Care.png') },
-  { key: 'beauty',      image: require('../../assets/img/Beauty, Health, Grocery.png') },
-  { key: 'health',      image: require('../../assets/img/Beauty, Health, Grocery.png') },
-  { key: 'grocery',     image: require('../../assets/img/Beauty, Health, Grocery.png') },
-  { key: 'clothing',    image: require('../../assets/img/Clothing.png') },
-  { key: 'electronics', image: require('../../assets/img/Electronics.png') },
-  { key: 'fmcg',        image: require('../../assets/img/FMCG.png') },
-  { key: 'footwear',    image: require('../../assets/img/Footwear.png') },
-  { key: 'home',        image: require('../../assets/img/Home and Furniture.png') },
-  { key: 'furniture',   image: require('../../assets/img/Home and Furniture.png') },
-  { key: 'kitchen',     image: require('../../assets/img/Kitchen.png') },
-  { key: 'luggage',     image: require('../../assets/img/Luggage.png') },
-  { key: 'medical',     image: require('../../assets/img/Medical.png') },
-  { key: 'men',         image: require('../../assets/img/Mens Fashion.png') },
-  { key: 'mobile',      image: require('../../assets/img/Mobile, Computer, Accessories.png') },
-  { key: 'computer',    image: require('../../assets/img/Mobile, Computer, Accessories.png') },
-  { key: 'accessories', image: require('../../assets/img/Mobile, Computer, Accessories.png') },
-  { key: 'movie',       image: require('../../assets/img/Movies, Music, Games.png') },
-  { key: 'music',       image: require('../../assets/img/Movies, Music, Games.png') },
-  { key: 'games',       image: require('../../assets/img/Movies, Music, Games.png') },
-  { key: 'instrument',  image: require('../../assets/img/Musical Instruments.png') },
-  { key: 'sports',      image: require('../../assets/img/Sports.png') },
-  { key: 'stationary',  image: require('../../assets/img/Stationary.png') },
-  { key: 'tv',          image: require('../../assets/img/TV, Appliances, Electronics.png') },
-  { key: 'appliance',   image: require('../../assets/img/TV, Appliances, Electronics.png') },
-  { key: 'tools',       image: require('../../assets/img/Tools and Hardware.png') },
-  { key: 'hardware',    image: require('../../assets/img/Tools and Hardware.png') },
-  { key: 'toys',        image: require('../../assets/img/Toys.png') },
-  { key: 'watch',       image: require('../../assets/img/Watch.png') },
-  { key: 'women',       image: require('../../assets/img/Womens Fashion.png') },
+  { key: 'automotive',  image: { uri: resolveImgUrl('Automotive.png')! } },
+  { key: 'baby',        image: { uri: resolveImgUrl('Baby Care.png')! } },
+  { key: 'beauty',      image: { uri: resolveImgUrl('Beauty, Health, Grocery.png')! } },
+  { key: 'health',      image: { uri: resolveImgUrl('Beauty, Health, Grocery.png')! } },
+  { key: 'grocery',     image: { uri: resolveImgUrl('Beauty, Health, Grocery.png')! } },
+  { key: 'clothing',    image: { uri: resolveImgUrl('Clothing.png')! } },
+  { key: 'electronics', image: { uri: resolveImgUrl('Electronics.png')! } },
+  { key: 'fmcg',        image: { uri: resolveImgUrl('FMCG.png')! } },
+  { key: 'footwear',    image: { uri: resolveImgUrl('Footwear.png')! } },
+  { key: 'home',        image: { uri: resolveImgUrl('Home and Furniture.png')! } },
+  { key: 'furniture',   image: { uri: resolveImgUrl('Home and Furniture.png')! } },
+  { key: 'kitchen',     image: { uri: resolveImgUrl('Kitchen.png')! } },
+  { key: 'luggage',     image: { uri: resolveImgUrl('Luggage.png')! } },
+  { key: 'medical',     image: { uri: resolveImgUrl('Medical.png')! } },
+  { key: 'men',         image: { uri: resolveImgUrl('Mens Fashion.png')! } },
+  { key: 'mobile',      image: { uri: resolveImgUrl('Mobile, Computer, Accessories.png')! } },
+  { key: 'computer',    image: { uri: resolveImgUrl('Mobile, Computer, Accessories.png')! } },
+  { key: 'accessories', image: { uri: resolveImgUrl('Mobile, Computer, Accessories.png')! } },
+  { key: 'movie',       image: { uri: resolveImgUrl('Movies, Music, Games.png')! } },
+  { key: 'music',       image: { uri: resolveImgUrl('Movies, Music, Games.png')! } },
+  { key: 'games',       image: { uri: resolveImgUrl('Movies, Music, Games.png')! } },
+  { key: 'instrument',  image: { uri: resolveImgUrl('Musical Instruments.png')! } },
+  { key: 'sports',      image: { uri: resolveImgUrl('Sports.png')! } },
+  { key: 'stationary',  image: { uri: resolveImgUrl('Stationary.png')! } },
+  { key: 'tv',          image: { uri: resolveImgUrl('TV, Appliances, Electronics.png')! } },
+  { key: 'appliance',   image: { uri: resolveImgUrl('TV, Appliances, Electronics.png')! } },
+  { key: 'tools',       image: { uri: resolveImgUrl('Tools and Hardware.png')! } },
+  { key: 'hardware',    image: { uri: resolveImgUrl('Tools and Hardware.png')! } },
+  { key: 'toys',        image: { uri: resolveImgUrl('Toys.png')! } },
+  { key: 'watch',       image: { uri: resolveImgUrl('Watch.png')! } },
+  { key: 'women',       image: { uri: resolveImgUrl('Womens Fashion.png')! } },
 ];
-const FALLBACK_IMAGE = require('../../assets/img/FMCG.png');
-const resolveImage = (name: string): any => {
-  const lower = name.toLowerCase();
+const FALLBACK_IMAGE = { uri: resolveImgUrl('FMCG.png')! };
+// Normalize icon_name: add .png if no file extension (handles legacy DB data saved without extension).
+const normIcon = (n: string) => n.includes('.') ? n : `${n}.png`;
+// If the category has an explicit icon_name, resolve it from the img bucket; otherwise keyword-match.
+const resolveImage = (category: Category): any => {
+  if (category.icon_name) {
+    const url = resolveImgUrl(normIcon(category.icon_name));
+    if (url) return { uri: url };
+  }
+  const lower = category.name.toLowerCase();
   return IMAGE_MAP.find(({ key }) => lower.includes(key))?.image ?? FALLBACK_IMAGE;
 };
 
@@ -72,7 +80,7 @@ const CategoryTile: React.FC<{
     activeOpacity={0.75}
   >
     <View style={[styles.imageWrapper, { width: imageSize, height: imageSize }]}>
-      <Image source={resolveImage(category.name)} style={styles.tileImage} resizeMode="contain" />
+      <Image source={resolveImage(category)} style={styles.tileImage} resizeMode="contain" />
     </View>
     <Text style={styles.tileLabel} numberOfLines={2}>{category.name}</Text>
     {/* Stock indicator dot */}
@@ -221,7 +229,7 @@ export const CategoryGrid: React.FC<CategoryGridProps> = ({
                   activeOpacity={0.75}
                 >
                   <View style={styles.overlayImgWrap}>
-                    <Image source={resolveImage(cat.name)} style={styles.overlayTileImg} resizeMode="contain" />
+                    <Image source={resolveImage(cat)} style={styles.overlayTileImg} resizeMode="contain" />
                     {cat.has_stock && <View style={styles.stockBadge} />}
                   </View>
                   <Text style={[styles.overlayTileLabel, !cat.has_stock && { color: '#94A3B8' }]} numberOfLines={2}>

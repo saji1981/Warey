@@ -1,4 +1,4 @@
-import { supabase } from './SupabaseConfig';
+import { supabase, isMockMode } from './SupabaseConfig';
 import { InventoryLot } from '../types/InventoryLot';
 import { resolveLotImageUrl, resolveManifestUrl } from '../utils/StorageUtils';
 
@@ -21,9 +21,31 @@ export interface FetchLotsResult {
   error: string | null;
 }
 
+const mockLots: InventoryLot[] = [
+  { id: '101', title: 'Premium Smartphone Lot', category_id: 1, bulk_price: 250000, stock_status: 'Available', created_at: new Date().toISOString(), thumbnail_url: 'https://picsum.photos/seed/101/400/300', manifest_url: 'mock_manifest.csv' },
+  { id: '102', title: 'Designer Clothing Bundle', category_id: 2, bulk_price: 85000, stock_status: 'Available', created_at: new Date().toISOString(), thumbnail_url: 'https://picsum.photos/seed/102/400/300', manifest_url: 'mock_manifest.csv' },
+  { id: '103', title: 'Modern Furniture Set', category_id: 3, bulk_price: 150000, stock_status: 'Available', created_at: new Date().toISOString(), thumbnail_url: 'https://picsum.photos/seed/103/400/300', manifest_url: 'mock_manifest.csv' },
+  { id: '104', title: 'Cosmetics Surplus', category_id: 5, bulk_price: 45000, stock_status: 'Available', created_at: new Date().toISOString(), thumbnail_url: 'https://picsum.photos/seed/104/400/300', manifest_url: 'mock_manifest.csv' },
+  { id: '105', title: 'Branded Footwear Pallet', category_id: 9, bulk_price: 120000, stock_status: 'Available', created_at: new Date().toISOString(), thumbnail_url: 'https://picsum.photos/seed/105/400/300', manifest_url: 'mock_manifest.csv' },
+  { id: '106', title: 'Travel Luggage Clearance', category_id: 10, bulk_price: 65000, stock_status: 'Available', created_at: new Date().toISOString(), thumbnail_url: 'https://picsum.photos/seed/106/400/300', manifest_url: 'mock_manifest.csv' }
+];
+
 export const fetchInventoryLots = async (
   options: FetchLotsOptions = {}
 ): Promise<FetchLotsResult> => {
+  if (isMockMode) {
+    console.log('Mocking fetchInventoryLots');
+    await new Promise(resolve => setTimeout(resolve, 500));
+    let data = [...mockLots];
+    if (options.categoryId) {
+      data = data.filter(lot => String(lot.category_id) === String(options.categoryId));
+    }
+    if (options.searchQuery && options.searchQuery.trim() !== '') {
+      data = data.filter(lot => lot.title.toLowerCase().includes(options.searchQuery!.toLowerCase()));
+    }
+    return { data: data.slice(0, options.limit || 60), error: null };
+  }
+
   const { categoryId, searchQuery, limit = 60 } = options;
 
   try {
@@ -70,6 +92,15 @@ export const fetchInventoryLots = async (
 
 /** Fetch all images for a single lot from the lot_images table */
 export const fetchLotImages = async (lotId: string): Promise<LotImage[]> => {
+  if (isMockMode) {
+    console.log(`[LotImages] Mocking images for lot: ${lotId}`);
+    await new Promise(resolve => setTimeout(resolve, 300));
+    return [
+      { id: 'img1', lot_id: lotId, filename: 'mock1.jpg', url: `https://picsum.photos/seed/${lotId}A/600/400`, sort_order: 1 },
+      { id: 'img2', lot_id: lotId, filename: 'mock2.jpg', url: `https://picsum.photos/seed/${lotId}B/600/400`, sort_order: 2 }
+    ];
+  }
+
   try {
     console.log(`[LotImages] Fetching images for lot: ${lotId}`);
 
@@ -106,6 +137,15 @@ export const fetchLotImages = async (lotId: string): Promise<LotImage[]> => {
 
 // ─── Quick search: top 8 lots matching the query (for home search overlay) ──
 export const quickSearch = async (query: string): Promise<InventoryLot[]> => {
+  if (isMockMode) {
+    if (!query || query.trim().length < 2) return [];
+    console.log('Mocking quickSearch');
+    await new Promise(resolve => setTimeout(resolve, 300));
+    return mockLots
+      .filter(lot => lot.title.toLowerCase().includes(query.toLowerCase()))
+      .slice(0, 8);
+  }
+
   if (!query || query.trim().length < 2) return [];
   try {
     const { data, error } = await supabase

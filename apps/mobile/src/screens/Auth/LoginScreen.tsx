@@ -13,6 +13,7 @@ import {
   useWindowDimensions,
 } from 'react-native';
 import { sendOTP, verifyOTP } from '../../services/AuthService';
+import { resolveImgUrl } from '../../utils/StorageUtils';
 
 interface LoginScreenProps {
   authData?: any;
@@ -94,7 +95,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = (props) => {
         {/* Branding banner */}
         <View style={styles.bannerContainer}>
           <Image
-            source={require('../../../assets/img/Background.png')}
+            source={{ uri: resolveImgUrl('Logo.png')! }}
             style={[styles.banner, { height: bannerHeight, width: isWideScreen ? '55%' : '85%' }]}
             resizeMode="contain"
           />

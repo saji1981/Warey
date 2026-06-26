@@ -1,28 +1,32 @@
 {
-  "name": "warey-mobile",
+  "name": "trulots-mobile",
   "version": "1.0.0",
   "main": "expo/AppEntry.js",
   "scripts": {
     "start": "expo start",
     "android": "expo start --android",
-    "ios": "expo start --ios"
+    "ios": "expo start --ios",
+    "build:web": "expo export --platform web"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.45.0",
-    "@warey/shared-types": "file:./local-packages/shared-types",
+    "@warey/shared-types": "*",
     "expo": "~54.0.0",
     "expo-document-picker": "~14.0.8",
     "expo-file-system": "~19.0.22",
     "expo-sharing": "^56.0.15",
+    "fbjs": "^3.0.5",
     "papaparse": "^5.5.3",
     "react": "19.1.0",
     "react-dom": "19.1.0",
     "react-native": "0.81.5",
+    "react-native-safe-area-context": "~5.6.0",
     "react-native-web": "^0.21.0",
     "xlsx": "^0.18.5"
   },
   "private": true,
   "devDependencies": {
+    "@expo/metro": "^55.1.1",
     "@types/papaparse": "^5.5.2",
     "@types/react": "~19.1.10",
     "typescript": "~5.9.2"

@@ -112,7 +112,7 @@ export const ProfileScreen: React.FC<Props> = ({ onLogout, onBack }) => {
   };
 
   const handleShare = () => {
-    Share.share({ message: 'Check out Warey — the smart B2B liquidation marketplace! Download the app and start buying bulk inventory at great prices.' });
+    Share.share({ message: 'Check out Trulots — the smart B2B liquidation marketplace! Download the app and start buying bulk inventory at great prices.' });
   };
 
   const handleEditPress = () => {
@@ -169,7 +169,7 @@ export const ProfileScreen: React.FC<Props> = ({ onLogout, onBack }) => {
           <Text style={s.heroPhone}>{profile?.phone ? `+91 ${profile.phone.slice(-10)}` : 'Phone not set'}</Text>
 
           <View style={s.membershipBadge}>
-            <Text style={s.membershipText}>B2B Verified Buyer  •  Warey</Text>
+            <Text style={s.membershipText}>B2B Verified Buyer  •  Trulots</Text>
           </View>
         </View>
 
@@ -188,14 +188,14 @@ export const ProfileScreen: React.FC<Props> = ({ onLogout, onBack }) => {
         {/* ── Account Settings ── */}
         <Text style={s.sectionLabel}>Account Settings</Text>
         <View style={s.card}>
-          <Row label="Rate the Warey App" onPress={() => Linking.openURL('market://details?id=com.warey.app').catch(() => Linking.openURL('https://play.google.com/store'))} />
+          <Row label="Rate the Trulots App" onPress={() => Linking.openURL('market://details?id=com.trulots').catch(() => Linking.openURL('https://play.google.com/store/apps/details?id=com.trulots'))} />
           <View style={s.sep} />
           <Row label="Share App with Retailers" onPress={handleShare} />
           <View style={s.sep} />
           <Row label="Log Out" onPress={handleLogout} danger />
         </View>
 
-        <Text style={s.versionTxt}>Warey v1.0.0  •  HKS Enterprises  •  New Delhi</Text>
+        <Text style={s.versionTxt}>Trulots v1.0.0  •  HKS Enterprises  •  New Delhi</Text>
       </ScrollView>
 
 
@@ -267,20 +267,20 @@ export const ProfileScreen: React.FC<Props> = ({ onLogout, onBack }) => {
       {/* FAQs */}
       <InfoModal visible={faqOpen} title="FAQs" onClose={() => setFaqOpen(false)} content={
         <View style={{ gap: 16 }}>
-          <Text style={s.sectionHeader}>About Warey & The App</Text>
+          <Text style={s.sectionHeader}>About Trulots & The App</Text>
           <View style={s.faqItem}>
-            <Text style={s.faqQ}>What is Warey?</Text>
-            <Text style={s.faqA}>Warey is a specialized B2B liquidation marketplace application connecting verified buyers, retailers, and resellers directly with premium surplus inventory at deep wholesale bulk prices. It serves as the digital catalog and ordering system for HKS Enterprises.</Text>
+            <Text style={s.faqQ}>What is Trulots?</Text>
+            <Text style={s.faqA}>Trulots is a specialized B2B liquidation marketplace application connecting verified buyers, retailers, and resellers directly with premium surplus inventory at deep wholesale bulk prices. It serves as the digital catalog and ordering system for HKS Enterprises.</Text>
           </View>
           <View style={s.faqItem}>
-            <Text style={s.faqQ}>Where can I get the Warey App?</Text>
-            <Text style={s.faqA}>The Warey App is available for download on major mobile platforms. You can download the official application to browse live stocklots directly from your smartphone:</Text>
+            <Text style={s.faqQ}>Where can I get the Trulots App?</Text>
+            <Text style={s.faqA}>The Trulots App is available for download on major mobile platforms. You can download the official application to browse live stocklots directly from your smartphone:</Text>
             <View style={[s.bulletRow, { marginTop: 8 }]}><Text style={s.bulletDot}>•</Text><Text style={s.bulletText}>Android Users: Download via the Google Play Store.</Text></View>
             <View style={s.bulletRow}><Text style={s.bulletDot}>•</Text><Text style={s.bulletText}>iOS Users: Download via the Apple App Store.</Text></View>
             <View style={s.bulletRow}><Text style={s.bulletDot}>•</Text><Text style={s.bulletText}>(Links to the respective app stores can be found on our main website homepage).</Text></View>
           </View>
           <View style={s.faqItem}>
-            <Text style={s.faqQ}>Why should I use the Warey App instead of traditional sourcing?</Text>
+            <Text style={s.faqQ}>Why should I use the Trulots App instead of traditional sourcing?</Text>
             <Text style={s.faqA}>The app provides real-time access to fast-moving liquidation inventory. By using the app, you get instant push notifications the moment a new truckload, Amazon return lot, or appliance batch arrives at our Mundka warehouse, allowing you to secure high-demand stock before it sells out.</Text>
           </View>
 
@@ -288,18 +288,18 @@ export const ProfileScreen: React.FC<Props> = ({ onLogout, onBack }) => {
           <View style={s.faqItem}>
             <Text style={s.faqQ}>How do I place an order?</Text>
             <Text style={s.faqA}>Ordering is streamlined directly through our digital application:</Text>
-            <View style={[s.bulletRow, { marginTop: 8 }]}><Text style={s.bulletDot}>1.</Text><Text style={s.bulletText}>Open the Warey App and browse our live, available lots.</Text></View>
+            <View style={[s.bulletRow, { marginTop: 8 }]}><Text style={s.bulletDot}>1.</Text><Text style={s.bulletText}>Open the Trulots App and browse our live, available lots.</Text></View>
             <View style={s.bulletRow}><Text style={s.bulletDot}>2.</Text><Text style={s.bulletText}>Select the specific inventory lot or pallet you are interested in.</Text></View>
             <View style={s.bulletRow}><Text style={s.bulletDot}>3.</Text><Text style={s.bulletText}>Tap the "Enquire via WhatsApp" button.</Text></View>
             <View style={s.bulletRow}><Text style={s.bulletDot}>4.</Text><Text style={s.bulletText}>Our dedicated sales and logistics team will instantly connect with you to finalize pricing, volume breakdowns, and freight details.</Text></View>
           </View>
           <View style={s.faqItem}>
             <Text style={s.faqQ}>How are prices determined?</Text>
-            <Text style={s.faqA}>Liquidation markets move rapidly. Prices on Warey are dynamically set based on current wholesale market rates, the overall volume of the batch, and the physical condition of the specific lot (e.g., brand-new overstock versus raw customer returns) at the exact time of listing.</Text>
+            <Text style={s.faqA}>Liquidation markets move rapidly. Prices on Trulots are dynamically set based on current wholesale market rates, the overall volume of the batch, and the physical condition of the specific lot (e.g., brand-new overstock versus raw customer returns) at the exact time of listing.</Text>
           </View>
           <View style={s.faqItem}>
             <Text style={s.faqQ}>What is the Minimum Order Quantity (MOQ)?</Text>
-            <Text style={s.faqA}>Because we operate as high-volume liquidation wholesalers, we deal primarily in bulk categories. MOQs vary by lot and are clearly displayed on each product card inside the Warey App. We typically sell by the full box, pallet, or complete truckload (FTL).</Text>
+            <Text style={s.faqA}>Because we operate as high-volume liquidation wholesalers, we deal primarily in bulk categories. MOQs vary by lot and are clearly displayed on each product card inside the Trulots App. We typically sell by the full box, pallet, or complete truckload (FTL).</Text>
           </View>
 
           <Text style={s.sectionHeader}>Security, Privacy & Tech</Text>
@@ -319,7 +319,7 @@ export const ProfileScreen: React.FC<Props> = ({ onLogout, onBack }) => {
           </View>
           <View style={s.faqItem}>
             <Text style={s.faqQ}>Can I inspect the goods before the logistics are finalized?</Text>
-            <Text style={s.faqA}>Absolutely. We follow an open-warehouse model. While you can browse and inquire via the Warey App, you are always welcome to physically visit our main facility at Mundka, New Delhi to visually audit the container loads and pallets before making final payment.</Text>
+            <Text style={s.faqA}>Absolutely. We follow an open-warehouse model. While you can browse and inquire via the Trulots App, you are always welcome to physically visit our main facility at Mundka, New Delhi to visually audit the container loads and pallets before making final payment.</Text>
           </View>
           <View style={s.faqItem}>
             <Text style={s.faqQ}>How is shipping handled?</Text>
@@ -366,18 +366,18 @@ export const ProfileScreen: React.FC<Props> = ({ onLogout, onBack }) => {
         <View style={{ gap: 16 }}>
           <Text style={[s.bodyTxt, { fontWeight: '800', fontSize: 18, color: '#0F172A' }]}>Terms of Service</Text>
           <Text style={[s.bodyTxt, { marginTop: -12, fontSize: 13, color: '#64748B' }]}>Last Updated: May 17, 2026</Text>
-          <Text style={s.bodyTxt}>Welcome to Warey, a mobile application and digital marketplace owned and operated by HKS Enterprises ("Company", "we", "us", or "our"), a business entity based in New Delhi, India, managed by partner Jatin Sharma.</Text>
-          <Text style={s.bodyTxt}>These Terms of Service ("Terms") constitute a legally binding agreement between HKS Enterprises and you, whether personally or on behalf of an entity ("you", "user", or "buyer"), concerning your access to and use of the Warey mobile application, our website, and any related corporate communication channels (collectively, the "Services").</Text>
-          <Text style={s.bodyTxt}>By downloading the Warey App, creating a commercial account, or initiating a transaction, you expressly acknowledge that you have read, understood, and agreed to be bound by all of these Terms. If you do not agree with all of these Terms, you are expressly prohibited from using our Services and must discontinue use immediately.</Text>
+          <Text style={s.bodyTxt}>Welcome to Trulots, a mobile application and digital marketplace owned and operated by HKS Enterprises ("Company", "we", "us", or "our"), a business entity based in New Delhi, India, managed by partner Jatin Sharma.</Text>
+          <Text style={s.bodyTxt}>These Terms of Service ("Terms") constitute a legally binding agreement between HKS Enterprises and you, whether personally or on behalf of an entity ("you", "user", or "buyer"), concerning your access to and use of the Trulots mobile application, our website, and any related corporate communication channels (collectively, the "Services").</Text>
+          <Text style={s.bodyTxt}>By downloading the Trulots App, creating a commercial account, or initiating a transaction, you expressly acknowledge that you have read, understood, and agreed to be bound by all of these Terms. If you do not agree with all of these Terms, you are expressly prohibited from using our Services and must discontinue use immediately.</Text>
 
           <Text style={s.sectionHeader}>1. B2B Eligibility & Account Registration</Text>
-          <View style={s.bulletRow}><Text style={s.bulletDot}>•</Text><Text style={s.bulletText}><Text style={{ fontWeight: '700' }}>Commercial Nature:</Text> Warey is strictly a Business-to-Business (B2B) wholesale liquidation platform. It is not intended for retail consumers or casual end-users.</Text></View>
+          <View style={s.bulletRow}><Text style={s.bulletDot}>•</Text><Text style={s.bulletText}><Text style={{ fontWeight: '700' }}>Commercial Nature:</Text> Trulots is strictly a Business-to-Business (B2B) wholesale liquidation platform. It is not intended for retail consumers or casual end-users.</Text></View>
           <View style={s.bulletRow}><Text style={s.bulletDot}>•</Text><Text style={s.bulletText}><Text style={{ fontWeight: '700' }}>Age & Representation:</Text> By creating an account, you affirm that you are at least 18 years of age and hold the legal authority to bind your business or corporate entity to these Terms.</Text></View>
           <View style={s.bulletRow}><Text style={s.bulletDot}>•</Text><Text style={s.bulletText}><Text style={{ fontWeight: '700' }}>Verification:</Text> We reserve the right to request valid business verification documents, including but not limited to Goods and Services Tax (GST) registrations, PAN cards, or trade licenses, before granting access to specific stocklot pricing.</Text></View>
           <View style={s.bulletRow}><Text style={s.bulletDot}>•</Text><Text style={s.bulletText}><Text style={{ fontWeight: '700' }}>Account Security:</Text> You are entirely responsible for maintaining the confidentiality of your account credentials. You agree to notify us immediately of any unauthorized use of your account.</Text></View>
 
           <Text style={s.sectionHeader}>2. Nature of Liquidation Inventory & "As-Is" Sales</Text>
-          <View style={s.bulletRow}><Text style={s.bulletDot}>•</Text><Text style={s.bulletText}><Text style={{ fontWeight: '700' }}>Inventory Classification:</Text> Users explicitly acknowledge that the inventory listed on Warey consists of surplus, overstock, shelf pulls, liquidation stocklots, and raw e-commerce/Amazon customer returns.</Text></View>
+          <View style={s.bulletRow}><Text style={s.bulletDot}>•</Text><Text style={s.bulletText}><Text style={{ fontWeight: '700' }}>Inventory Classification:</Text> Users explicitly acknowledge that the inventory listed on Trulots consists of surplus, overstock, shelf pulls, liquidation stocklots, and raw e-commerce/Amazon customer returns.</Text></View>
           <View style={s.bulletRow}><Text style={s.bulletDot}>•</Text><Text style={s.bulletText}><Text style={{ fontWeight: '700' }}>No Warranties ("As-Is" Clause):</Text> Unless explicitly stated otherwise in writing on a specific premium lot invoice, all stocklots are sold on an "As-Is, Where-Is" basis. HKS Enterprises makes no express or implied warranties regarding the merchantability, fitness for a particular purpose, or functionality of items within a liquidated lot.</Text></View>
           <View style={s.bulletRow}><Text style={s.bulletDot}>•</Text><Text style={s.bulletText}><Text style={{ fontWeight: '700' }}>Defect Manifestation:</Text> Customer return lots may contain items that are defective, missing parts, or damaged in transit. The risk of these variations is a standard component of liquidation sourcing, and the buyer assumes full financial risk upon purchase.</Text></View>
 
@@ -402,11 +402,11 @@ export const ProfileScreen: React.FC<Props> = ({ onLogout, onBack }) => {
           <View style={s.bulletRow}><Text style={s.bulletDot}>•</Text><Text style={s.bulletText}><Text style={{ fontWeight: '700' }}>Discretionary Resolution:</Text> HKS Enterprises retains sole discretionary power to issue a partial store credit, coordinate an exchange, or reject claims filed outside the 48-hour audit window.</Text></View>
 
           <Text style={s.sectionHeader}>7. App Security, Data & Platform Infrastructure</Text>
-          <View style={s.bulletRow}><Text style={s.bulletDot}>•</Text><Text style={s.bulletText}><Text style={{ fontWeight: '700' }}>Supabase Integration:</Text> The Warey App utilizes a high-tier backend infrastructure powered by Supabase. Your business account logs, inquiries, and app-interactions are heavily safeguarded.</Text></View>
+          <View style={s.bulletRow}><Text style={s.bulletDot}>•</Text><Text style={s.bulletText}><Text style={{ fontWeight: '700' }}>Supabase Integration:</Text> The Trulots App utilizes a high-tier backend infrastructure powered by Supabase. Your business account logs, inquiries, and app-interactions are heavily safeguarded.</Text></View>
           <View style={s.bulletRow}><Text style={s.bulletDot}>•</Text><Text style={s.bulletText}><Text style={{ fontWeight: '700' }}>Row-Level Security (RLS):</Text> We enforce precise database-level RLS policies. Any attempt by a user to bypass security protocols, reverse-engineer the application, or scrape catalog data will result in immediate account termination and legal action under the IT Act, 2000.</Text></View>
 
           <Text style={s.sectionHeader}>8. Intellectual Property Rights</Text>
-          <View style={s.bulletRow}><Text style={s.bulletDot}>•</Text><Text style={s.bulletText}><Text style={{ fontWeight: '700' }}>Trademarks & Imagery:</Text> The names "Warey," "HKS Enterprises," and all logos, application graphics, UI designs, and marketing assets are the exclusive property of our firm.</Text></View>
+          <View style={s.bulletRow}><Text style={s.bulletDot}>•</Text><Text style={s.bulletText}><Text style={{ fontWeight: '700' }}>Trademarks & Imagery:</Text> The names "Trulots," "HKS Enterprises," and all logos, application graphics, UI designs, and marketing assets are the exclusive property of our firm.</Text></View>
           <View style={s.bulletRow}><Text style={s.bulletDot}>•</Text><Text style={s.bulletText}><Text style={{ fontWeight: '700' }}>Brand Liquidations:</Text> When buying branded inventory (such as Faber or Hero), the buyer agrees to adhere to the respective brand's local resale rules. HKS Enterprises does not transfer brand authorization certificates or manufacturing rights to the buyer.</Text></View>
 
           <Text style={s.sectionHeader}>9. Limitation of Liability & Indemnification</Text>
@@ -420,7 +420,7 @@ export const ProfileScreen: React.FC<Props> = ({ onLogout, onBack }) => {
 
           <Text style={s.sectionHeader}>11. Contact and Notice</Text>
           <Text style={[s.bodyTxt, { marginBottom: -8 }]}>All legal notices, questions, or compliance clarifications regarding these Terms should be routed directly to our corporate desk:</Text>
-          <View style={s.bulletRow}><Text style={s.bulletDot}>•</Text><Text style={s.bulletText}><Text style={{ fontWeight: '700' }}>Entity:</Text> HKS Enterprises / Warey Support Desk</Text></View>
+          <View style={s.bulletRow}><Text style={s.bulletDot}>•</Text><Text style={s.bulletText}><Text style={{ fontWeight: '700' }}>Entity:</Text> HKS Enterprises / Trulots Support Desk</Text></View>
           <View style={s.bulletRow}><Text style={s.bulletDot}>•</Text><Text style={s.bulletText}><Text style={{ fontWeight: '700' }}>Managing Partner:</Text> Jatin Sharma</Text></View>
           <View style={s.bulletRow}><Text style={s.bulletDot}>•</Text><Text style={s.bulletText}><Text style={{ fontWeight: '700' }}>Physical Hub:</Text> Khasra No. 124/19, Mundka-Ranholla Road, Mundka, New Delhi, Delhi – 110041, India.</Text></View>
 

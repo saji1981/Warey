@@ -22,6 +22,8 @@ import * as XLSX from 'xlsx';
 import { InventoryLot } from '../../types/InventoryLot';
 import { fetchLotImages, LotImage } from '../../services/InventoryService';
 import { resolveManifestUrl } from '../../utils/StorageUtils';
+import { isMockMode } from '../../services/SupabaseConfig';
+import { openWhatsApp, openEmail, BUSINESS_EMAIL } from '../../utils/ContactUtils';
 
 // ─── Props ────────────────────────────────────────────────────────────────────
 interface LotDetailScreenProps {
@@ -55,6 +57,19 @@ const ManifestModal: React.FC<{
     setLoading(true);
     setError(null);
     setParsedData([]);
+
+    if (isMockMode) {
+      setLoading(true);
+      setTimeout(() => {
+        setParsedData([
+          { "SKU": `MOCK-${lotId}-1`, "Product Name": "Mock Item A", "Quantity": 50, "Condition": "New", "Brand": "BrandX" },
+          { "SKU": `MOCK-${lotId}-2`, "Product Name": "Mock Item B", "Quantity": 30, "Condition": "Refurbished", "Brand": "BrandY" },
+          { "SKU": `MOCK-${lotId}-3`, "Product Name": "Mock Item C", "Quantity": 12, "Condition": "Used", "Brand": "BrandZ" },
+        ]);
+        setLoading(false);
+      }, 500);
+      return;
+    }
 
     const bare = filename
       .replace(/^https?:\/\/[^/]+\/storage\/v1\/object\/public\/[^/]+\//, '')
@@ -100,9 +115,17 @@ const ManifestModal: React.FC<{
   const downloadCSV = async () => {
     try {
       const csvStr = Papa.unparse(parsedData);
-      const fileUri = FileSystem.documentDirectory + `Manifest_${lotId}.csv`;
-      await FileSystem.writeAsStringAsync(fileUri, csvStr, { encoding: FileSystem.EncodingType.UTF8 });
-      await Sharing.shareAsync(fileUri);
+      if (Platform.OS === 'web') {
+        const blob = new Blob([csvStr], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url; link.download = `Manifest_${lotId}.csv`; link.click();
+        URL.revokeObjectURL(url);
+      } else {
+        const fileUri = FileSystem.documentDirectory! + `Manifest_${lotId}.csv`;
+        await FileSystem.writeAsStringAsync(fileUri, csvStr, { encoding: FileSystem.EncodingType.UTF8 });
+        await Sharing.shareAsync(fileUri);
+      }
     } catch (e) {
       Alert.alert('Error', 'Failed to generate CSV file');
     }
@@ -112,11 +135,20 @@ const ManifestModal: React.FC<{
     try {
       const ws = XLSX.utils.json_to_sheet(parsedData);
       const wb = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(wb, ws, "Manifest");
-      const base64 = XLSX.write(wb, { type: 'base64', bookType: 'xlsx' });
-      const fileUri = FileSystem.documentDirectory + `Manifest_${lotId}.xlsx`;
-      await FileSystem.writeAsStringAsync(fileUri, base64, { encoding: FileSystem.EncodingType.Base64 });
-      await Sharing.shareAsync(fileUri);
+      XLSX.utils.book_append_sheet(wb, ws, 'Manifest');
+      if (Platform.OS === 'web') {
+        const wbArr = XLSX.write(wb, { type: 'array', bookType: 'xlsx' });
+        const blob = new Blob([wbArr], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url; link.download = `Manifest_${lotId}.xlsx`; link.click();
+        URL.revokeObjectURL(url);
+      } else {
+        const base64 = XLSX.write(wb, { type: 'base64', bookType: 'xlsx' });
+        const fileUri = FileSystem.documentDirectory! + `Manifest_${lotId}.xlsx`;
+        await FileSystem.writeAsStringAsync(fileUri, base64, { encoding: FileSystem.EncodingType.Base64 });
+        await Sharing.shareAsync(fileUri);
+      }
     } catch (e) {
       Alert.alert('Error', 'Failed to generate Excel file');
     }
@@ -398,28 +430,33 @@ export const LotDetailScreen: React.FC<LotDetailScreenProps> = ({ lot, onBack })
         </TouchableOpacity>
       )}
 
-      {/* WhatsApp CTA */}
-      <TouchableOpacity 
-        style={styles.ctaBtn} 
-        activeOpacity={0.85}
-        onPress={() => {
-          const phoneNumber = "919876543210"; // Ensure this matches your Meta business number
-          const message = `Hello, I'd like to enquire about Lot ID: ${lot.id}`;
-          const url = `whatsapp://send?phone=${phoneNumber}&text=${encodeURIComponent(message)}`;
-          
-          import('react-native').then(({ Linking, Alert }) => {
-            Linking.canOpenURL(url).then(supported => {
-              if (supported) {
-                Linking.openURL(url);
-              } else {
-                Alert.alert('WhatsApp not installed', 'Please install WhatsApp to use this feature.');
-              }
-            });
-          });
-        }}
-      >
-        <Text style={styles.ctaBtnTxt}>💬  Enquire via WhatsApp</Text>
-      </TouchableOpacity>
+      {/* CTA row — WhatsApp + Email */}
+      <View style={{ gap: 10, marginBottom: 16 }}>
+        {Platform.OS === 'web' && (
+          <Text style={styles.ctaWebNote}>
+            💡 WhatsApp opens in your browser. No WhatsApp? Use the email button below.
+          </Text>
+        )}
+        <TouchableOpacity
+          style={styles.ctaBtn}
+          activeOpacity={0.85}
+          onPress={() => openWhatsApp(
+            `Hello, I'd like to enquire about:\n\nLot: ${lot.title || 'N/A'}\nLot ID: ${lot.id}\nPrice: ${price}\n\nCould you please share more details?`
+          )}
+        >
+          <Text style={styles.ctaBtnTxt}>💬  Enquire via WhatsApp</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.ctaBtnEmail}
+          activeOpacity={0.85}
+          onPress={() => openEmail(
+            `Enquiry — ${lot.title || lot.id}`,
+            `Hi,\n\nI would like to enquire about the following lot:\n\nTitle: ${lot.title || 'N/A'}\nLot ID: ${lot.id}\nPrice: ${price}\nCategory: ${lot.category_id || 'N/A'}\n\nPlease share more details at your earliest convenience.\n\nThank you.`
+          )}
+        >
+          <Text style={styles.ctaBtnEmailTxt}>📧  Send Enquiry via Email</Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 
@@ -637,6 +674,13 @@ const styles = StyleSheet.create({
   },
   manifestBtnTxt: { fontSize: 14, fontWeight: '700', color: '#0F172A' },
 
+  ctaWebNote: {
+    fontSize: 12,
+    color: '#64748B',
+    textAlign: 'center',
+    marginBottom: 4,
+    lineHeight: 18,
+  },
   ctaBtn: {
     backgroundColor: '#16A34A',
     borderRadius: 12, height: 54,
@@ -646,9 +690,16 @@ const styles = StyleSheet.create({
       android: { elevation: 4 },
       default: {},
     }),
-    marginBottom: 16,
   },
   ctaBtnTxt: { fontSize: 16, fontWeight: '800', color: '#FFF', letterSpacing: 0.2 },
+  ctaBtnEmail: {
+    backgroundColor: '#FFF',
+    borderRadius: 12, height: 54,
+    alignItems: 'center', justifyContent: 'center',
+    borderWidth: 1.5,
+    borderColor: '#0F172A',
+  },
+  ctaBtnEmailTxt: { fontSize: 15, fontWeight: '700', color: '#0F172A', letterSpacing: 0.2 },
 
   // ··· overflow thumb button
   thumbDots: {

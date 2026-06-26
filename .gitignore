@@ -1,7 +1,16 @@
 node_modules/
+node_modules_old/
+patch_android_workflow.py
 .env
 dist/
 build/
 .expo/
 apps/mobile/local-packages/
 google-play-key.json
+node_modules
+
+# Google Cloud / Firebase service account keys — NEVER commit private keys
+warey-498007-f045568b9276.json
+*-firebase-adminsdk-*.json
+*-service-account*.json
+*-credentials.json

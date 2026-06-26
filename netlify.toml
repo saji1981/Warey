@@ -1,7 +1,7 @@
 [build]
   base    = "apps/mobile"
   command = "npx expo export --platform web"
-  publish = "apps/mobile/dist"
+  publish = "dist"
 
 [build.environment]
   NODE_VERSION = "20"

@@ -53,21 +53,33 @@ jobs:
         run: npx expo export --platform web
 
       # ── 6. Deploy to Netlify ───────────────────────────────────────────────
-      # Deploy via Netlify Files API (bypasses netlify-cli build pipeline and
-      # monorepo detection entirely).
+      # Deploy via Netlify REST API (zip upload) - bypasses netlify-cli entirely
+      # to avoid npm workspaces detection and @netlify/build pipeline.
       - name: Deploy to Netlify
         env:
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
           NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
         run: |
-          pip install netlify-py 2>/dev/null || true
-          # Use netlify-cli v17 which doesn't have monorepo/workspace detection
-          npx netlify-cli@17 deploy \
-            --dir=apps/mobile/dist \
-            --prod \
-            --site=${NETLIFY_SITE_ID} \
-            --auth=${NETLIFY_AUTH_TOKEN} \
-            --message="v${{ steps.version.outputs.version }} (${{ steps.version.outputs.bump_type }}) — ${{ github.sha }}"
+          cd apps/mobile/dist
+          zip -r /tmp/deploy.zip .
+          RESPONSE=$(curl -s -X POST \
+            "https://api.netlify.com/api/v1/sites/${NETLIFY_SITE_ID}/deploys" \
+            -H "Authorization: Bearer ${NETLIFY_AUTH_TOKEN}" \
+            -H "Content-Type: application/zip" \
+            --data-binary @/tmp/deploy.zip)
+          echo "$RESPONSE" | python3 -c "
+          import sys, json
+          d = json.load(sys.stdin)
+          state = d.get('state','unknown')
+          url   = d.get('ssl_url') or d.get('url','')
+          eid   = d.get('id','')
+          print(f'Deploy ID: {eid}')
+          print(f'State:     {state}')
+          print(f'URL:       {url}')
+          if state not in ('ready','uploaded','processing','building'):
+              print('ERROR response:', json.dumps(d, indent=2))
+              sys.exit(1)
+          "
 
       # ── 7. Commit version bump + create git tag ────────────────────────────
       # [skip ci] prevents this commit from re-triggering the workflow.

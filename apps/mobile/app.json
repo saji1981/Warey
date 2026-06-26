@@ -23,7 +23,8 @@
         "foregroundImage": "./assets/icon.png",
         "backgroundColor": "#0F172A"
       },
-      "package": "com.trulots"
+      "package": "com.trulots",
+      "versionCode": 3
     },
     "web": {
       "favicon": "./assets/icon.png",

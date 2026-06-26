@@ -111,6 +111,13 @@ print(f"\nVersion bump: {current}  →  {new_version}")
 
 # ── 5. Write apps/mobile/app.json ────────────────────────────────────────────
 app["expo"]["version"] = new_version
+
+# Always increment versionCode (must be strictly increasing for Google Play)
+current_vc = app["expo"].get("android", {}).get("versionCode", 0)
+new_vc = current_vc + 1
+app["expo"].setdefault("android", {})["versionCode"] = new_vc
+print(f"versionCode:   {current_vc}  →  {new_vc}")
+
 with open(APP_JSON, "w", encoding="utf-8") as f:
     json.dump(app, f, indent=2, ensure_ascii=False)
     f.write("\n")

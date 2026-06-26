@@ -53,23 +53,24 @@ jobs:
         run: npx expo export --platform web
 
       # ── 6. Deploy to Netlify ───────────────────────────────────────────────
-      # Clear dashboard build command first (commandOrigin: ui overrides toml),
-      # then upload the pre-built dist folder directly.
+      # Clear dashboard build command via API first (commandOrigin:ui overrides
+      # netlify.toml), then upload pre-built dist from apps/mobile.
       - name: Deploy to Netlify
+        working-directory: apps/mobile
         env:
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
           NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
         run: |
-          # Clear the dashboard build command so netlify-cli doesn't re-run it
+          # Clear the dashboard build command so netlify-cli won't re-run it
           curl -s -X PATCH "https://api.netlify.com/api/v1/sites/${NETLIFY_SITE_ID}" \
             -H "Authorization: Bearer ${NETLIFY_AUTH_TOKEN}" \
             -H "Content-Type: application/json" \
-            -d '{"build_settings":{"cmd":"","dir":"apps/mobile/dist","base":""}}' | \
-            python3 -c "import sys,json; d=json.load(sys.stdin); print('build_settings:', d.get('build_settings',{}))"
+            -d '{"build_settings":{"cmd":"","dir":"dist","base":"apps/mobile"}}' | \
+            python3 -c "import sys,json; d=json.load(sys.stdin); print('cmd:', d.get('build_settings',{}).get('cmd','<unchanged>'))"
 
-          # Deploy pre-built files
+          # Deploy pre-built dist (no --build, env vars auto-read by netlify-cli)
           npx netlify-cli@latest deploy \
-            --dir=apps/mobile/dist \
+            --dir=dist \
             --prod \
             --message="v${{ steps.version.outputs.version }} (${{ steps.version.outputs.bump_type }}) — ${{ github.sha }}"
 

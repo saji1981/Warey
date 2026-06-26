@@ -53,16 +53,15 @@ jobs:
         run: npx expo export --platform web
 
       # ── 6. Deploy to Netlify ───────────────────────────────────────────────
-      # Use netlify-cli with --skip-build to bypass the @netlify/build pipeline
-      # entirely (avoids commandOrigin:ui build command being re-run).
+      # Use --no-build to skip the @netlify/build pipeline (avoids re-running
+      # the dashboard build command). Pass absolute path to dist.
       - name: Deploy to Netlify
-        working-directory: apps/mobile
         env:
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
           NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
         run: |
           npx netlify-cli@latest deploy \
-            --dir=dist \
+            --dir=${{ github.workspace }}/apps/mobile/dist \
             --prod \
             --no-build \
             --message="v${{ steps.version.outputs.version }} (${{ steps.version.outputs.bump_type }}) — ${{ github.sha }}"

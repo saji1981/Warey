@@ -54,9 +54,10 @@ jobs:
 
       # ── 6. Deploy to Netlify ───────────────────────────────────────────────
       - name: Deploy to Netlify
+        working-directory: apps/mobile
         run: |
           npx netlify-cli@latest deploy \
-            --dir=apps/mobile/dist \
+            --dir=dist \
             --prod \
             --message="v${{ steps.version.outputs.version }} (${{ steps.version.outputs.bump_type }}) — ${{ github.sha }}"
         env:

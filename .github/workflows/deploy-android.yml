@@ -65,7 +65,7 @@ jobs:
       - name: EAS Submit - Google Play internal track
         if: ${{ github.event_name == 'push' || inputs.submit_to_store == 'true' }}
         working-directory: apps/mobile
-        run: eas submit --platform android --profile production --non-interactive --latest --service-account-key-path /tmp/google-play-key.json
+        run: eas submit --platform android --profile production --non-interactive --latest
         env:
           EXPO_PUBLIC_SUPABASE_URL: ${{ secrets.EXPO_PUBLIC_SUPABASE_URL }}
           EXPO_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.EXPO_PUBLIC_SUPABASE_ANON_KEY }}

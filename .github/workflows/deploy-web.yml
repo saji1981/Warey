@@ -54,9 +54,10 @@ jobs:
 
       # ── 6. Deploy to Netlify ───────────────────────────────────────────────
       - name: Deploy to Netlify
+        working-directory: apps/mobile
         run: |
           npx netlify-cli@latest deploy \
-            --dir=apps/mobile/dist \
+            --dir=dist \
             --prod \
             --site=${{ secrets.NETLIFY_SITE_ID }} \
             --auth=${{ secrets.NETLIFY_AUTH_TOKEN }} \

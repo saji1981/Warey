@@ -53,11 +53,15 @@ jobs:
         run: python3 scripts/bump-version.py
 
       - name: EAS Build - Android production
+        id: eas-build
         working-directory: apps/mobile
-        run: eas build --platform android --profile production --non-interactive
-        env:
-          EXPO_PUBLIC_SUPABASE_URL: ${{ secrets.EXPO_PUBLIC_SUPABASE_URL }}
-          EXPO_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.EXPO_PUBLIC_SUPABASE_ANON_KEY }}
+        run: |
+          # Pipe build output to tee so we capture AND display it
+          eas build --platform android --profile production --non-interactive 2>&1 | tee /tmp/eas-build.log
+          # Extract the build UUID from the log (last UUID found = build ID)
+          BUILD_ID=$(grep -oE '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}' /tmp/eas-build.log | tail -1)
+          echo "build_id=$BUILD_ID" >> $GITHUB_OUTPUT
+          echo "Captured Build ID: $BUILD_ID"
 
       - name: Write Play Store service account key
         run: echo '${{ secrets.GOOGLE_PLAY_KEY_JSON }}' > /tmp/google-play-key.json
@@ -65,10 +69,8 @@ jobs:
       - name: EAS Submit - Google Play internal track
         if: ${{ github.event_name == 'push' || inputs.submit_to_store == 'true' }}
         working-directory: apps/mobile
-        run: eas submit --platform android --profile production --non-interactive --latest
-        env:
-          EXPO_PUBLIC_SUPABASE_URL: ${{ secrets.EXPO_PUBLIC_SUPABASE_URL }}
-          EXPO_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.EXPO_PUBLIC_SUPABASE_ANON_KEY }}
+        # Use the build ID from THIS run (not --latest which may reuse an already-submitted build)
+        run: eas submit --platform android --profile production --non-interactive --id ${{ steps.eas-build.outputs.build_id }}
 
       # [skip ci] prevents this commit re-triggering the workflow
       - name: Commit version bump and tag

@@ -64,7 +64,7 @@ jobs:
           npx netlify-cli@latest deploy \
             --dir=dist \
             --prod \
-            --skip-build \
+            --no-build \
             --message="v${{ steps.version.outputs.version }} (${{ steps.version.outputs.bump_type }}) — ${{ github.sha }}"
 
       # ── 7. Commit version bump + create git tag ────────────────────────────

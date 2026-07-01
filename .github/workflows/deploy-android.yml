@@ -55,6 +55,8 @@ jobs:
       - name: EAS Build - Android production
         id: eas-build
         working-directory: apps/mobile
+        env:
+          EXPO_PUBLIC_SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
         run: |
           # Pipe build output to tee so we capture AND display it
           eas build --platform android --profile production --non-interactive 2>&1 | tee /tmp/eas-build.log

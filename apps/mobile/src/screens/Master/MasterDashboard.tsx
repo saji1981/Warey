@@ -328,7 +328,7 @@ export default function MasterDashboard({ onLogout, onBack }: Props) {
       const { error: upErr } = await supabase.storage.from('lotimg').upload(fileName, file, { cacheControl: '3600', upsert: false });
       if (upErr) { errList.push(`${file.name}: ${upErr.message}`); return; }
       const { data: { publicUrl } } = supabase.storage.from('lotimg').getPublicUrl(fileName);
-      const { error: insErr } = await supabase.from('lot_images').insert([{ id: uuidv4(), lot_id: lotId, url: publicUrl, sort_order: maxOrder + idx + 1 }]);
+      const { error: insErr } = await supabase.from('lot_images').insert([{ id: uuidv4(), lot_id: lotId, filename: fileName, url: publicUrl, sort_order: maxOrder + idx + 1 }]);
       if (insErr) { errList.push(`${file.name} (DB): ${insErr.message}`); }
     }));
     setLotImgErrors(prev => { const m = new Map(prev); errList.length > 0 ? m.set(lotId, errList.join(' | ')) : m.delete(lotId); return m; });
@@ -346,7 +346,7 @@ export default function MasterDashboard({ onLogout, onBack }: Props) {
       return;
     }
     const { data: { publicUrl } } = supabase.storage.from('lotimg').getPublicUrl(newName);
-    const { data: updated, error: dbErr } = await supabase.from('lot_images').update({ url: publicUrl }).eq('id', img.id).select();
+    const { data: updated, error: dbErr } = await supabase.from('lot_images').update({ filename: newName, url: publicUrl }).eq('id', img.id).select();
     if (dbErr || !updated || updated.length === 0) {
       setLotImgErrors(prev => { const m = new Map(prev); m.set(img.lot_id, `Replace failed (DB): ${dbErr?.message ?? 'No rows updated — check lot_images RLS policies.'}`); return m; });
       return;

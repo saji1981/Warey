@@ -1,4 +1,12 @@
 import React, { useState, useCallback, useRef, useMemo, useEffect } from 'react';
+import * as Sentry from '@sentry/react-native';
+
+Sentry.init({
+  dsn: process.env.EXPO_PUBLIC_SENTRY_DSN ?? '',
+  enabled: !!process.env.EXPO_PUBLIC_SENTRY_DSN,
+  environment: __DEV__ ? 'development' : 'production',
+  tracesSampleRate: 0.2,
+});
 import {
   View,
   StyleSheet,
@@ -496,4 +504,4 @@ const styles = StyleSheet.create({
   resultStatusTxt: { fontSize: 10, fontWeight: '700' },
 });
 
-export default App;
+export default Sentry.wrap(App);

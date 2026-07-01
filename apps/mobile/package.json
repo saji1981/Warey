@@ -9,6 +9,7 @@
     "build:web": "expo export --platform web"
   },
   "dependencies": {
+    "@sentry/react-native": "^8.16.0",
     "@supabase/supabase-js": "^2.45.0",
     "@warey/shared-types": "*",
     "expo": "~54.0.0",
